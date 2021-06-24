@@ -1,4 +1,4 @@
-![image](https://user-images.githubusercontent.com/22709846/123261573-35d38f80-d4f7-11eb-864d-0a9fad964958.png)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5026030.svg)](https://doi.org/10.5281/zenodo.5026030)
 
 # microbiota_executive_functioning2021
 
