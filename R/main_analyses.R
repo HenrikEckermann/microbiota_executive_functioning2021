@@ -1072,9 +1072,11 @@ b_post[[4]] <- brief_shannon
 # rename the 6 and 10 year columns
 b_post <- map(b_post, function(post) {
   select(post, 
-    "Day 28", "Day 75", "Day 105",
-    "Year 6" = "Day 2193",
-    "Year 10" = "Day 3655"
+    "T1" = "Day 28", 
+    "T2" = "Day 75", 
+    "T3" = "Day 105",
+    "T4" = "Day 2193",
+    "T5" = "Day 3655"
   )
 })
 
@@ -2184,3 +2186,81 @@ shannon_stab2 <- map(1:21, function(idd) {
 })
 
 save(shannon_stab1, shannon_stab2, file = here::here("rdata/shannon_stab.Rds"))
+
+
+
+
+
+
+
+#####################################################################
+##########                  volatility plots               ##########
+#####################################################################
+# get all IDs we have to plot
+bpids <- meta %>% filter(
+    !is.na(time),
+    (!is.na(total_f) | 
+      !is.na(total_bw) | 
+        !is.na(total_lns) |
+          !is.na(brief_total8_t) |
+            !is.na(brief_total10_t))
+  ) %>% distinct(subject_id) %>% .$subject_id
+
+
+# create a pseq for the biplot function
+sd_temp <- meta %>% filter(subject_id %in% bpids) %>%
+ mutate(T = 
+   ifelse(time == 28, "1", 
+    ifelse(time == 75, "2", 
+      ifelse(time == 105, "3", 
+        ifelse(time == 2193, "4", 
+          ifelse(time == 3655, "5",NA))))),
+          T = factor(T, levels = c("1", "2", "3", "4", "5"))) %>% 
+  right_join(sd_to_df(pseq_clr), by = c("subject_id", "time")) %>%
+  filter(!is.na(T)) %>%
+  arrange(subject_id, T)
+
+# to split subjects between plots to avoid overplotting
+iid <- sd_temp %>% select(subject_id) %>% distinct() %>%
+  mutate(
+    iid = as.integer(as.factor(subject_id)),
+    seq = rep(1:34, each = 5)
+  )
+
+sd_temp <- left_join(sd_temp, iid, by = c("subject_id"))
+pseq_temp <- prune_samples(sd_temp$sample_id, pseq_clr)
+sample_data(pseq_temp) <- df_to_sd(sd_temp)
+
+# set axis limits equal for all plots 
+yplus <- 6
+yminus <- -10
+xminus <- -10
+xplus <- 13
+beta_vol_plots <- map(1:34, function(seqiid) {
+  biplot(
+    pseq_temp, 
+    filter_samples = filter(sd_temp, seq == seqiid) %>% .$sample_id, 
+    connect_series = "time",
+    shape = "subject_id",
+    otu_alpha = 0,
+    path_size = 1,
+    label = "T",
+    point_size = 15,
+    alpha = 0.65,
+    # text = TRUE,
+    # text_size = 10,
+    arrow_size = 1,
+    #color = "T",
+    #colors = c('#fef0d9','#fdcc8a','#fc8d59','#e34a33','#b30000'),
+    path_alpha = 0.5
+  )[[1]] +  theme_bw(base_size = 30) + 
+            theme(legend.position="none") + 
+              xlim(c(xminus, xplus)) + ylim(c(yminus, yplus))
+
+})
+
+
+
+
+save(beta_vol_plots, file = here::here("rdata/beta_vol_plots.Rds"))
+ 

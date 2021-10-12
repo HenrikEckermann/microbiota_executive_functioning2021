@@ -319,17 +319,45 @@ if (!file.exists(here::here("article/table_supplement.Rmd"))) {
   write_lines(
     '---\noutput:\n  word_document:\n    toc: true\n---\n\n', file = here::here("Rmd/publication/model_tables.Rmd"), append = FALSE)
  }
+ 
+ # add RF supplementary table 
+load(file = here::here("rdata/rf_table_featsl.Rds"))
 
-model_tabs$nr <- 1:20
-pmap(model_tabs, function(time, y, data, nr) {
+write_lines(
+  x = glue("\n\n### Table S1: Correlation between Random Forest prediction and real data for the models that applied feature selection.\n \n"),
+  file = here::here("Rmd/publication/model_tables.Rmd"), append = TRUE)
+write_lines(
+  x = knitr::kable(
+    rf_table_featsl
+    ),
+  file = here::here("Rmd/publication/model_tables.Rmd"), append = TRUE)
+
+model_tabs$nr <- 2:21
+pmap(model_tabs_shannon, function(time, y, data, nr) {
   y_pub <- ifelse(y == "BRIEF", "BRIEF", ifelse(y == "total_f", "Digit Span Forwards", ifelse(y == "total_bw", "Digit Span Backwards", ifelse(y == "total_lns", "Digit Span Letter Number Sequencing", NA))))
-  time_pub <- ifelse(time == 28, "28 days", ifelse(time == 75, "75 days", ifelse(time == 105, "105 days", ifelse(time == 2193, "6 years", ifelse(time == 3655, "10 years", NA)))))
+  time_pub <- ifelse(time == 28, "T1", ifelse(time == 75, "T2", ifelse(time == 105, "T3", ifelse(time == 2193, "T4", ifelse(time == 3655, "T5", NA)))))
   write_lines(
-    x = glue("\n\n### Table S{nr}: Parameter estimates for the model using microbiota samples obtained at {time_pub} as predictor and {y_pub} as outcome variable.\n \n"),
+    x = glue("\n\n### Table S{nr}: Parameter estimates for the model using Shannon diversity calculated from samples collected at {time_pub} as predictor and {y_pub} as outcome variable.\n \n"),
     file = here::here("Rmd/publication/model_tables.Rmd"), append = TRUE)
   write_lines(
-    x = knitr::kable(data),
-    file = here::here("Rmd/publication/model_tables.Rmd"), append = TRUE)  
+    x = knitr::kable(
+      data),
+    file = here::here("Rmd/publication/model_tables.Rmd"), append = TRUE)
+})
+
+model_tabs_volatility$nr <- 22:37
+pmap(model_tabs_volatility, function(time, y, data, nr) {
+  y_pub <- ifelse(y == "BRIEF", "BRIEF", ifelse(y == "total_f", "Digit Span Forwards", ifelse(y == "total_bw", "Digit Span Backwards", ifelse(y == "total_lns", "Digit Span Letter Number Sequencing", NA))))
+  #time_pub <- ifelse(time == "1-2", "75 days", ifelse(time == "2-3", "105 days", ifelse(time == "3-4", "6 years", ifelse(time == "4-5", "10 years", NA))))
+  write_lines(
+    x = glue("\n\n### Table S{nr}: Parameter estimates for the model using volatility calculated between samples {time} as predictor and {y_pub} as outcome variable.\n \n"),
+    file = here::here("Rmd/publication/model_tables.Rmd"), append = TRUE)
+  write_lines(
+    x = knitr::kable(
+      data,
+      #caption = glue("Parameter estimates for the model using microbiota samples obtained at {time_pub} as predictor and {y_pub} as outcome variable.")
+      ),
+    file = here::here("Rmd/publication/model_tables.Rmd"), append = TRUE)
 })
 
 rmarkdown::render(here::here("Rmd/publication/model_tables.Rmd"))
