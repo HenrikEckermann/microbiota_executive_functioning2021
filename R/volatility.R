@@ -290,10 +290,14 @@ b_plots_vol <- map2(b_post, list("DS Total LNS", "DS Total Backwards", "DS Total
 })
 
 
-b_plots_vol
+# visualize distributions of volatility per time point pair 
+volplot <- ggplot(vol, aes(time, vol)) +
+  geom_boxplot(outlier.alpha = 0, fill = "#f7f7f7") +
+  geom_jitter(width = 0.2, alpha = 0.5, color = "#969696", size =3) +
+  stat_summary(fun = "mean", color = "#525252", size = 1.5) +
+  ylab("Volatility") + xlab("Time Point Pair") +
+  theme_bw(base_size = 28)
 
-save(b_plots_vol, file = here::here("rdata/b_plots_vol.Rds"))
+save(volplot, b_plots_vol, file = here::here("rdata/b_plots_vol.Rds"))
 
-select(meta, contains("total")) %>%
-  GGally::ggpairs()
   
